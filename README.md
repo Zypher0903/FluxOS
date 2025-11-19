@@ -1,4 +1,3 @@
-Build Status License: MIT OSDev
 FluxOS is a from-scratch hobby operating system for x86 (32-bit) architecture, designed as a learning project inspired by the OSDev community. It features a custom bootloader, protected-mode kernel, graphical user interface (GUI) with window management, preemptive multitasking, a basic FAT12 filesystem, and an ELF loader for user-mode applications. The goal is to build a minimal, functional OS that boots in QEMU and runs on real hardware (BIOS-based).
 This project started as a simple bootloader and evolved into a full prototype with IRQ handling, mouse/keyboard input, and draggable windows – all in under 2,000 lines of code!
 Features
