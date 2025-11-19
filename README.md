@@ -1,94 +1,215 @@
-FluxOS is a from-scratch hobby operating system for x86 (32-bit) architecture, designed as a learning project inspired by the OSDev community. It features a custom bootloader, protected-mode kernel, graphical user interface (GUI) with window management, preemptive multitasking, a basic FAT12 filesystem, and an ELF loader for user-mode applications. The goal is to build a minimal, functional OS that boots in QEMU and runs on real hardware (BIOS-based).
-This project started as a simple bootloader and evolved into a full prototype with IRQ handling, mouse/keyboard input, and draggable windows – all in under 2,000 lines of code!
-Features
+# 🌐 FluxOS  
+**FluxOS is a from-scratch 32-bit x86 hobby operating system**, built as a learning project inspired by OSDev.  
+It features a custom bootloader, protected-mode kernel, fully custom GUI with window management, preemptive multitasking, FAT12 filesystem support, and an ELF loader for user-mode apps — all written in C and Assembly.
 
-Bootloader: Custom 16-bit real-mode to 32-bit protected-mode switch (no GRUB dependency).
-Kernel: Global Descriptor Table (GDT), Interrupt Descriptor Table (IDT) with 256 entries and ISR stubs, Programmable Interrupt Controller (PIC) remapping, and Programmable Interval Timer (PIT) for 100Hz ticks.
-Input Drivers: PS/2 keyboard (IRQ1) and mouse (IRQ12) with scan code mapping and packet parsing.
-GUI (Window Manager): VGA mode 13h (320x200x256 colors), draggable/resizable windows, click detection, close buttons, desktop icons, and a taskbar. Supports double-click to launch apps.
-Multitasking: Simple preemptive round-robin scheduler using PIT interrupts.
-Memory Management: Basic heap allocator (malloc/free) with 4MB initial heap.
-Filesystem: FAT12 support for loading icons, wallpapers, and binaries from a floppy image.
-User Mode: ELF loader to execute simple user-space programs (e.g., "Hello World" app).
-Emulator Support: Fully boots in QEMU; tested on real x86 hardware (floppy boot).
+FluxOS boots on real hardware (BIOS) and in QEMU, fitting entirely in a 1.44MB floppy image.
 
-Project Structure
-textFluxOS/
-├── boot/              # Bootloader (boot.asm)
-├── drivers/           # Keyboard and mouse drivers
-│   ├── keyboard.c
-│   └── mouse.c
-├── gui/               # VGA graphics and window manager
-│   ├── vga.c
-│   ├── font.c
-│   └── wm.c
-├── include/           # Headers (common.h, idt.h, etc.)
-├── kernel/            # Core kernel files
-│   ├── main.c
-│   ├── idt.c
-│   ├── isr.s          # ISR stubs in assembly
-│   ├── pic.c
-│   ├── pit.c
-│   ├── memory.c
-│   ├── scheduler.c
-│   └── elf.c
-├── apps/              # Sample ELF user apps (e.g., hello.elf)
-├── fs/                # FAT12 demo files (e.g., WALLPAPER.BMP)
-├── linker.ld          # Linker script
-└── Makefile           # Build and run scripts
-Building and Running
-Prerequisites
+---
 
-Cross-Compiler: i686-elf-gcc (build from OSDev Wiki).
-Tools: NASM, QEMU, Make (on Linux/Mac: sudo apt install nasm qemu-system-x86 make).
-OS: Tested on Ubuntu 22.04+.
+## 🚀 Features
 
-Build Steps
+### 🧵 **Bootloader**
+- Custom 16-bit real-mode bootloader (no GRUB)
+- Loads kernel from floppy sectors
+- Sets up GDT and transitions to 32-bit protected mode
 
-Clone the repo:textgit clone https://github.com/Zypher0903/FluxOS.git
+### 🖥️ **Kernel**
+- Global Descriptor Table (GDT)
+- Interrupt Descriptor Table (IDT) with 256 entries
+- Assembly ISR stubs for exceptions & IRQs
+- PIC remapping (0x20 / 0x28)
+- Programmable Interval Timer (PIT) @ 100Hz
+
+### ⌨️🖱️ **Input Drivers**
+- PS/2 keyboard driver (IRQ1)
+- PS/2 mouse driver (IRQ12) with packet parsing  
+  → supports cursor movement, clicks, drag, double-click
+
+### 🖼️ **Graphics & Window Manager**
+- VGA Mode 13h (320×200×256 colors)
+- Mouse cursor rendering
+- Draggable windows with:
+  - titlebars  
+  - close buttons  
+  - focus management  
+- Desktop icons & double-click app launching
+- Simple taskbar
+
+### 🔁 **Multitasking**
+- Preemptive round-robin scheduler
+- Driven by PIT interrupts (IRQ0)
+- Kernel task switching
+
+### 🧠 **Memory Management**
+- Basic heap (malloc/free)
+- 4MB initial heap
+- Physical memory identity-mapped
+
+### 💾 **Filesystem**
+- FAT12 reader for:
+  - icons
+  - wallpapers
+  - ELF binaries
+
+### 🧩 **User Mode**
+- Basic ELF loader
+- Loads and executes simple user-mode applications  
+  (e.g., `hello.elf`)
+
+### 🖥️ **Emulator & Hardware Support**
+- Fully boots in **QEMU**
+- Boots on real x86 hardware via floppy/USB  
+  (BIOS mode only)
+
+---
+
+## 📁 Project Structure
+
+FluxOS/
+├── boot/ # Real-mode bootloader (boot.asm)
+├── drivers/ # Keyboard & mouse drivers
+│ ├── keyboard.c
+│ └── mouse.c
+├── gui/ # VGA graphics & window manager
+│ ├── vga.c
+│ ├── font.c
+│ └── wm.c
+├── include/ # Header files
+├── kernel/ # Core kernel code
+│ ├── main.c
+│ ├── idt.c
+│ ├── isr.s
+│ ├── pic.c
+│ ├── pit.c
+│ ├── memory.c
+│ ├── scheduler.c
+│ └── elf.c
+├── apps/ # User-mode ELF applications
+├── fs/ # FAT12 demo assets (icons, wallpaper)
+├── LICENSE
+├── CONTRIBUTING.md
+├── .gitignore
+├── linker.ld
+└── Makefile
+
+markdown
+Copy code
+
+---
+
+## 🛠️ Building FluxOS
+
+### **Prerequisites**
+- `i686-elf-gcc` cross-compiler  
+  → install via OSDev Wiki guide  
+- `NASM`
+- `QEMU`
+- `Make`
+
+### **Clone and build**
+```bash
+git clone https://github.com/Zypher0903/FluxOS.git
 cd FluxOS
-Build the kernel and floppy image:textmake
-Run in QEMU:textmake run
+make
+Run in QEMU
+bash
+Copy code
+make run
+This generates:
 
-This generates fluxos.img (1.44MB floppy) and boots into the GUI. You'll see a blue desktop with draggable windows, a mouse cursor, and taskbar. Press keys or move the mouse to interact!
-Hardware Boot
+fluxos.img → bootable 1.44MB floppy image
 
-Write fluxos.img to a USB floppy (e.g., via dd if=fluxos.img of=/dev/fd0).
-Boot from it in BIOS mode (disable Secure Boot).
+kernel binary
 
+FluxOS boots directly into the GUI desktop environment.
 
-Boot: boot.asm loads the kernel from disk sectors, sets up GDT, and jumps to protected mode.
-Kernel Init: main.c initializes IDT (256 entries with ISR stubs), PIC (IRQ remap), PIT (timer for scheduling), memory heap, drivers, and WM.
-Interrupts: PIT (IRQ0) drives multitasking; keyboard (IRQ1) and mouse (IRQ12) handle input via custom handlers.
-GUI Events: Window manager processes mouse clicks/drags and key events for window ops and icon launches.
-Filesystem & Apps: FAT12 reads files from the boot floppy; ELF loader maps and executes user binaries in ring 3.
+💿 Booting on Real Hardware
+Write fluxos.img to a floppy or USB floppy emulator:
 
-For deep dives:
+bash
+Copy code
+dd if=fluxos.img of=/dev/fd0
+Boot from BIOS (disable Secure Boot)
 
-IDT/ISR: Full 256-entry table with assembly stubs for exceptions and IRQs.
-WM: Event loop detects left-click (drag titlebar), right-click (close), double-click (launch ELF).
+Enjoy FluxOS running on real metal!
 
-Roadmap
+🔍 Technical Highlights
+🧩 Interrupt System
+Complete IDT with 256 entries
 
- Custom bootloader & protected mode.
- IDT with ISR/IRQ handlers (keyboard/mouse).
- Window manager with drag/close/clicks.
- PIT-based preemptive multitasking.
- FAT12 filesystem for assets/apps.
- ELF loader + user mode.
- VFS (Virtual File System) layer.
- USB support and AHCI disk driver.
- Simple shell/terminal app.
- Networking (basic Ethernet).
- UEFI boot support.
+Separate exception/IRQ stubs
 
-Contributions welcome! See CONTRIBUTING.md for guidelines.
-Resources & Credits
+Hardware IRQ handling (keyboard, mouse, timer)
 
-Heavily inspired by OSDev Wiki tutorials (e.g., Bare Bones).
-Similar projects: cfenollosa/os-tutorial, littleosbook.
-Fonts/Icons: Custom 8x8 bitmap font; BMP assets from public domain.
-Thanks to the OSDev Discord for troubleshooting tips!
+Uses iret-based return
 
-License
-This project is licensed under the MIT License – see LICENSE for details.
+🪟 Window Manager
+Mouse-driven
+
+Multi-window support
+
+Titlebar dragging
+
+Close button actions
+
+Double-click open
+
+Icon-based desktop
+
+📁 FAT12 Loader
+Reads sectors from floppy
+
+Loads BMP icons/wallpapers
+
+Loads ELF user apps from disk
+
+📦 ELF Loader
+Parses headers
+
+Maps program segments
+
+Transfers control to user mode
+
+🧭 Roadmap
+ Virtual File System (VFS)
+
+ AHCI/SATA disk driver
+
+ USB driver (keyboard/mouse)
+
+ Simple command-line shell
+
+ Networking (Ethernet)
+
+ VESA 640×480 / 800×600 graphics
+
+ UEFI boot support
+
+ More user-mode apps
+
+ Paging + virtual memory
+
+🤝 Contributing
+See CONTRIBUTING.md for details.
+All contributions are welcome!
+
+📄 License
+FluxOS is released under the MIT License.
+See the LICENSE file for full text.
+
+⭐ Acknowledgements
+FluxOS was built using knowledge and inspiration from:
+
+OSDev Wiki & OSDev Forums
+
+The Little Book About OS Development
+
+cfenollosa/os-tutorial
+
+KolibriOS & MenuetOS communities
+
+Public domain 8×8 bitmap fonts
+
+🧑‍💻 Author
+David / Zypher0903
+Builder of FluxOS — a from-scratch OS dev adventure.
